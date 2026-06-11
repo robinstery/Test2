@@ -1,0 +1,18 @@
+{
+  "name": "tilstandsanalyse",
+  "version": "1.0.0",
+  "description": "AI-assistert teknisk tilstandsanalyse av bygninger (NS 3424 / NS 3451) for mobil",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:37631/git/robinstery/Test2"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "express": "^5.2.1"
+  }
+}
