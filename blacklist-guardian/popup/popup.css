@@ -17,13 +17,31 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px 10px;
+  padding: 10px 12px 10px 16px;
   background: #7f1d1d;
   color: #fff;
   position: sticky;
   top: 0;
   z-index: 10;
 }
+
+.btn-options {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-options:hover { background: rgba(255,255,255,0.25); }
 
 .header-icon { font-size: 18px; }
 
@@ -240,12 +258,3 @@ textarea {
   letter-spacing: 0;
 }
 
-/* ── Footer ── */
-footer {
-  padding: 10px 16px 12px;
-  text-align: center;
-  background: #fafaf9;
-  position: sticky;
-  bottom: 0;
-  border-top: 1px solid #e7e5e4;
-}
