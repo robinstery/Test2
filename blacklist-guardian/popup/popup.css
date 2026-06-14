@@ -133,6 +133,37 @@ textarea {
 
 .btn-link:hover { text-decoration: underline; }
 
+/* ── Source checkbox ── */
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #44403c;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  margin-bottom: 3px;
+}
+
+.check-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: #dc2626;
+  cursor: pointer;
+}
+
+.source-preview {
+  font-size: 11px;
+  color: #78716c;
+  margin-left: 22px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
 /* ── Messages ── */
 .success-msg {
   margin-top: 8px;

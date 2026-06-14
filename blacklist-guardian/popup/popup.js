@@ -1,14 +1,36 @@
 'use strict';
 
-const termInput    = document.getElementById('term');
-const reasonInput  = document.getElementById('reason');
-const categorySel  = document.getElementById('category');
-const saveBtn      = document.getElementById('save-btn');
-const successMsg   = document.getElementById('save-success');
-const errorMsg     = document.getElementById('save-error');
-const recentList   = document.getElementById('recent-list');
-const totalCount   = document.getElementById('total-count');
-const openOptions  = document.getElementById('open-options');
+const termInput      = document.getElementById('term');
+const reasonInput    = document.getElementById('reason');
+const categorySel    = document.getElementById('category');
+const saveBtn        = document.getElementById('save-btn');
+const successMsg     = document.getElementById('save-success');
+const errorMsg       = document.getElementById('save-error');
+const recentList     = document.getElementById('recent-list');
+const totalCount     = document.getElementById('total-count');
+const openOptions    = document.getElementById('open-options');
+const sourceCheckEl  = document.getElementById('include-source');
+const sourcePreviewEl = document.getElementById('source-preview');
+
+let currentTab = null;
+
+// Load the current tab so we can show and optionally save its URL/title
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  if (tab && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+    currentTab = tab;
+    sourcePreviewEl.textContent = tab.title || tab.url;
+  } else {
+    sourceCheckEl.checked  = false;
+    sourceCheckEl.disabled = true;
+    sourcePreviewEl.textContent = 'No page available';
+    sourcePreviewEl.style.opacity = '0.4';
+  }
+});
+
+sourceCheckEl.addEventListener('change', () => {
+  sourcePreviewEl.style.opacity        = sourceCheckEl.checked ? '1' : '0.35';
+  sourcePreviewEl.style.textDecoration = sourceCheckEl.checked ? '' : 'line-through';
+});
 
 // ── Storage helpers ────────────────────────────────────────────────────────
 
@@ -78,24 +100,17 @@ async function handleSave() {
     return;
   }
 
-  // Try to get the current tab's URL and title so we record where the user was
-  let sourceUrl = '';
-  let sourceTitle = '';
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab) { sourceUrl = tab.url || ''; sourceTitle = tab.title || ''; }
-  } catch (_) { /* tabs permission may not fire inside popup on some pages */ }
-
+  const includeSource = sourceCheckEl.checked && currentTab;
   const newEntry = {
     id: Date.now().toString(),
     term,
-    aliases: document.getElementById('aliases').value.trim(),
-    reason: reasonInput.value.trim(),
-    category: categorySel.value,
-    sourceUrl,
-    sourceTitle,
-    dateAdded: new Date().toISOString(),
-    enabled: true
+    aliases:     document.getElementById('aliases').value.trim(),
+    reason:      reasonInput.value.trim(),
+    category:    categorySel.value,
+    sourceUrl:   includeSource ? (currentTab.url   || '') : '',
+    sourceTitle: includeSource ? (currentTab.title || '') : '',
+    dateAdded:   new Date().toISOString(),
+    enabled:     true
   };
 
   saveBtn.disabled = true;

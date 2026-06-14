@@ -432,8 +432,11 @@ function runBlacklistGuardian() {
 
     const dialog = document.createElement('div');
     dialog.id = 'blg-dialog';
+    const resolvedTitle = sourceTitle || document.title || '';
+    const resolvedUrl   = sourceUrl   || window.location.href || '';
+    const sourceDisplay = escapeHtml(resolvedTitle || resolvedUrl);
     dialog.innerHTML = `
-      <h2>🛡️ Add to Blacklist</h2>
+      <h2>⚠️ Add to Blacklist</h2>
       <div class="blg-field">
         <label for="blg-term">Term / Name</label>
         <input id="blg-term" type="text" placeholder="e.g. Acme Corporation" autocomplete="off">
@@ -457,6 +460,13 @@ function runBlacklistGuardian() {
           <option value="website">Website / Publisher</option>
         </select>
       </div>
+      <div class="blg-field">
+        <label class="blg-check-label">
+          <input type="checkbox" id="blg-include-source" checked>
+          Include source page
+        </label>
+        <div id="blg-source-preview" class="blg-source-preview">${sourceDisplay}</div>
+      </div>
       <div id="blg-dialog-success">✓ Saved!</div>
       <div class="blg-dialog-footer">
         <button class="blg-btn blg-btn-secondary" id="blg-cancel-btn">Cancel</button>
@@ -470,9 +480,16 @@ function runBlacklistGuardian() {
     const termInput = dialog.querySelector('#blg-term');
     termInput.value = term || '';
 
-    const saveBtn = dialog.querySelector('#blg-save-btn');
-    const cancelBtn = dialog.querySelector('#blg-cancel-btn');
-    const successEl = dialog.querySelector('#blg-dialog-success');
+    const saveBtn      = dialog.querySelector('#blg-save-btn');
+    const cancelBtn    = dialog.querySelector('#blg-cancel-btn');
+    const successEl    = dialog.querySelector('#blg-dialog-success');
+    const sourceCheck  = dialog.querySelector('#blg-include-source');
+    const sourcePreviewEl = dialog.querySelector('#blg-source-preview');
+
+    sourceCheck.addEventListener('change', () => {
+      sourcePreviewEl.style.opacity         = sourceCheck.checked ? '1' : '0.35';
+      sourcePreviewEl.style.textDecoration  = sourceCheck.checked ? '' : 'line-through';
+    });
 
     cancelBtn.addEventListener('click', removeDialog);
 
@@ -490,8 +507,8 @@ function runBlacklistGuardian() {
         aliases: dialog.querySelector('#blg-aliases').value.trim(),
         reason: dialog.querySelector('#blg-reason').value.trim(),
         category: dialog.querySelector('#blg-category').value,
-        sourceUrl: sourceUrl || window.location.href,
-        sourceTitle: sourceTitle || document.title,
+        sourceUrl:   sourceCheck.checked ? resolvedUrl   : '',
+        sourceTitle: sourceCheck.checked ? resolvedTitle : '',
         dateAdded: new Date().toISOString(),
         enabled: true
       };
