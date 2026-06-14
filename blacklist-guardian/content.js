@@ -237,14 +237,28 @@ function runBlacklistGuardian() {
     const termsEl = document.createElement('div');
     termsEl.id = 'blg-banner-terms';
 
-    // Show up to 3 term names; if more, add "and N more"
-    const names = matchedEntries.map(e => e.term);
-    const displayNames = names.slice(0, 3);
-    const extra = names.length - displayNames.length;
+    // Show up to 3 entries; if more, add "and N more".
+    // Built with DOM nodes (not innerHTML) so tooltip listeners can be attached.
+    const displayEntries = matchedEntries.slice(0, 3);
+    const extra = matchedEntries.length - displayEntries.length;
 
-    termsEl.innerHTML = 'Blacklist Guardian: This page mentions '
-      + displayNames.map(n => `<em>${escapeHtml(n)}</em>`).join(', ')
-      + (extra > 0 ? ` and ${extra} more` : '');
+    termsEl.appendChild(document.createTextNode('Blacklist Guardian: This page mentions '));
+
+    displayEntries.forEach((entry, i) => {
+      const em = document.createElement('em');
+      em.textContent = entry.term;
+      em.addEventListener('mouseenter', (e) => showTooltip(entry, e.clientX, e.clientY));
+      em.addEventListener('mousemove', (e) => repositionTooltip(e.clientX, e.clientY));
+      em.addEventListener('mouseleave', hideTooltip);
+      termsEl.appendChild(em);
+      if (i < displayEntries.length - 1) {
+        termsEl.appendChild(document.createTextNode(', '));
+      }
+    });
+
+    if (extra > 0) {
+      termsEl.appendChild(document.createTextNode(` and ${extra} more`));
+    }
 
     textWrap.appendChild(termsEl);
 
