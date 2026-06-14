@@ -255,7 +255,7 @@ function runBlacklistGuardian() {
     const displayLists = entryLists.slice(0, 3);
     const extra = entryLists.length - displayLists.length;
 
-    termsEl.appendChild(document.createTextNode('Blacklist Guardian: This page mentions '));
+    termsEl.appendChild(document.createTextNode('Heads up! This page mentions '));
 
     displayLists.forEach((entryList, i) => {
       const em = document.createElement('em');
