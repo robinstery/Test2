@@ -30,7 +30,7 @@ function runBlacklistGuardian() {
 
   function loadEntries() {
     return new Promise((resolve) => {
-      chrome.storage.local.get(['entries'], (result) => {
+      chrome.storage.sync.get(['entries'], (result) => {
         resolve(result.entries || []);
       });
     });
@@ -38,7 +38,7 @@ function runBlacklistGuardian() {
 
   function saveEntries(updatedEntries) {
     return new Promise((resolve) => {
-      chrome.storage.local.set({ entries: updatedEntries }, resolve);
+      chrome.storage.sync.set({ entries: updatedEntries }, resolve);
     });
   }
 

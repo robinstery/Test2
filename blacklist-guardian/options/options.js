@@ -4,12 +4,12 @@
 
 function getEntries() {
   return new Promise(resolve =>
-    chrome.storage.local.get(['entries'], r => resolve(r.entries || []))
+    chrome.storage.sync.get(['entries'], r => resolve(r.entries || []))
   );
 }
 
 function setEntries(entries) {
-  return new Promise(resolve => chrome.storage.local.set({ entries }, resolve));
+  return new Promise(resolve => chrome.storage.sync.set({ entries }, resolve));
 }
 
 // ── State ────────────────────────────────────────────────────────────────────
