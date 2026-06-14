@@ -200,6 +200,13 @@ td {
   word-break: break-word;
 }
 
+.aliases-cell {
+  font-weight: 400;
+  font-style: italic;
+  font-size: 11px;
+  color: #a8a29e;
+}
+
 .reason-cell, .source-cell {
   color: #57534e;
   line-height: 1.5;

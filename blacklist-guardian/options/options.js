@@ -48,6 +48,7 @@ function getFilteredSorted() {
     if (!q) return true;
     return (
       (e.term        || '').toLowerCase().includes(q) ||
+      (e.aliases     || '').toLowerCase().includes(q) ||
       (e.reason      || '').toLowerCase().includes(q) ||
       (e.sourceTitle || '').toLowerCase().includes(q) ||
       (e.category    || '').toLowerCase().includes(q)
@@ -89,7 +90,10 @@ function renderTable() {
     const catClass = `cat-${e.category || 'other'}`;
     return `
       <tr data-id="${esc(e.id)}" class="${disabled ? 'disabled-row' : ''}">
-        <td class="term-cell">${esc(e.term)}</td>
+        <td class="term-cell">
+          ${esc(e.term)}
+          ${e.aliases ? `<br><em class="aliases-cell">${esc(e.aliases)}</em>` : ''}
+        </td>
         <td><span class="cat-badge ${catClass}">${esc(catLabel(e.category))}</span></td>
         <td class="reason-cell">${esc(e.reason) || '<span style="color:#a8a29e">—</span>'}</td>
         <td class="source-cell">
@@ -162,6 +166,7 @@ function openEditModal(id) {
 
   editingId = id;
   document.getElementById('edit-term').value         = entry.term || '';
+  document.getElementById('edit-aliases').value      = entry.aliases || '';
   document.getElementById('edit-reason').value       = entry.reason || '';
   document.getElementById('edit-category').value     = entry.category || 'other';
   document.getElementById('edit-source-title').value = entry.sourceTitle || '';
@@ -198,6 +203,7 @@ document.getElementById('edit-save').addEventListener('click', async () => {
   allEntries[idx] = {
     ...allEntries[idx],
     term,
+    aliases:     document.getElementById('edit-aliases').value.trim(),
     reason:      document.getElementById('edit-reason').value.trim(),
     category:    document.getElementById('edit-category').value,
     sourceTitle: document.getElementById('edit-source-title').value.trim(),

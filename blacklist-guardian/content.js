@@ -12,7 +12,8 @@ function runBlacklistGuardian() {
   // ── State ──────────────────────────────────────────────────────────────────
   let entries = [];
   let termRegex = null;
-  let entryMap = new Map(); // lowercase term → entry object
+  let entryMap = new Map();     // lowercase primary term → entry[]
+  let termToPrimary = new Map(); // any lowercase term/alias → lowercase primary term
   let tooltipEl = null;
   let tooltipTimeout = null;
   let bannerEl = null;
@@ -44,23 +45,33 @@ function runBlacklistGuardian() {
 
   // ── Regex / lookup builder ─────────────────────────────────────────────────
 
+  function parseAliases(aliasStr) {
+    if (!aliasStr) return [];
+    return aliasStr.split(';').map(a => a.trim()).filter(Boolean);
+  }
+
   function buildMatcher(allEntries) {
     const active = allEntries.filter(e => e.enabled !== false);
     entryMap = new Map();
+    termToPrimary = new Map();
     if (active.length === 0) {
       termRegex = null;
       return;
     }
 
-    // Group by term — multiple reasons can share the same term
+    // Group entries by primary term; map every alias back to that primary key
     active.forEach(e => {
-      const key = e.term.toLowerCase();
-      if (!entryMap.has(key)) entryMap.set(key, []);
-      entryMap.get(key).push(e);
+      const primaryKey = e.term.toLowerCase();
+      if (!entryMap.has(primaryKey)) entryMap.set(primaryKey, []);
+      entryMap.get(primaryKey).push(e);
+      termToPrimary.set(primaryKey, primaryKey);
+      parseAliases(e.aliases).forEach(alias => {
+        termToPrimary.set(alias.toLowerCase(), primaryKey);
+      });
     });
 
     // Sort longer terms first so "Acme Corporation" matches before "Acme"
-    const escaped = [...entryMap.keys()]
+    const escaped = [...termToPrimary.keys()]
       .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
       .sort((a, b) => b.length - a.length);
 
@@ -81,7 +92,7 @@ function runBlacklistGuardian() {
   function scanNode(root) {
     if (!termRegex || !root) return new Set();
 
-    const matched = new Map(); // lowercase term → entry[] found on this scan
+    const matched = new Map(); // primaryKey → { entryList, matchedAs }
 
     // TreeWalker visits every text node in the subtree efficiently
     const walker = document.createTreeWalker(
@@ -125,10 +136,12 @@ function runBlacklistGuardian() {
       while ((match = termRegex.exec(text)) !== null) {
         const matchedText = match[0];
         const key = matchedText.toLowerCase();
-        const entryList = entryMap.get(key);
+        const primaryKey = termToPrimary.get(key);
+        if (!primaryKey) continue;
+        const entryList = entryMap.get(primaryKey);
         if (!entryList || entryList.length === 0) continue;
 
-        if (!matched.has(key)) matched.set(key, entryList);
+        if (!matched.has(primaryKey)) matched.set(primaryKey, { entryList, matchedAs: matchedText });
 
         // Text before the match
         if (match.index > lastIndex) {
@@ -138,7 +151,8 @@ function runBlacklistGuardian() {
         // The highlighted element
         const mark = document.createElement('mark');
         mark.className = 'blg-highlight';
-        mark.dataset.term = key;
+        mark.dataset.term = primaryKey;
+        mark.dataset.matchedAs = matchedText;
         mark.appendChild(document.createTextNode(matchedText));
         // Show entry count as a superscript badge when the term has multiple reasons
         if (entryList.length > 1) {
@@ -147,7 +161,7 @@ function runBlacklistGuardian() {
           badge.textContent = entryList.length;
           mark.appendChild(badge);
         }
-        mark.addEventListener('mouseenter', (e) => showTooltip(entryList, e.clientX, e.clientY));
+        mark.addEventListener('mouseenter', (e) => showTooltip(entryList, matchedText, e.clientX, e.clientY));
         mark.addEventListener('mousemove', (e) => repositionTooltip(e.clientX, e.clientY));
         mark.addEventListener('mouseleave', hideTooltip);
         fragment.appendChild(mark);
@@ -217,9 +231,10 @@ function runBlacklistGuardian() {
           // Re-collect all matched entry lists to update the banner
           const allMatched = new Map();
           document.querySelectorAll('mark.blg-highlight').forEach(mark => {
-            const term = mark.dataset.term;
-            if (term && entryMap.has(term) && !allMatched.has(term)) {
-              allMatched.set(term, entryMap.get(term));
+            const primaryKey = mark.dataset.term;
+            const matchedAs = mark.dataset.matchedAs || mark.childNodes[0]?.textContent || '';
+            if (primaryKey && entryMap.has(primaryKey) && !allMatched.has(primaryKey)) {
+              allMatched.set(primaryKey, { entryList: entryMap.get(primaryKey), matchedAs });
             }
           });
           removeBanner();
@@ -235,7 +250,7 @@ function runBlacklistGuardian() {
 
   // ── Banner ─────────────────────────────────────────────────────────────────
 
-  function showBanner(entryLists) {
+  function showBanner(matchedItems) {
     removeBanner();
 
     const banner = document.createElement('div');
@@ -252,25 +267,35 @@ function runBlacklistGuardian() {
     termsEl.id = 'blg-banner-terms';
 
     // Show up to 3 terms; if more, add "and N more"
-    const displayLists = entryLists.slice(0, 3);
-    const extra = entryLists.length - displayLists.length;
+    const displayItems = matchedItems.slice(0, 3);
+    const extra = matchedItems.length - displayItems.length;
 
     termsEl.appendChild(document.createTextNode('Heads up! This page mentions '));
 
-    displayLists.forEach((entryList, i) => {
+    displayItems.forEach((item, i) => {
+      const { entryList, matchedAs } = item;
+      const primaryTerm = entryList[0].term;
+      const isAlias = matchedAs.toLowerCase() !== primaryTerm.toLowerCase();
+
       const em = document.createElement('em');
-      em.appendChild(document.createTextNode(entryList[0].term));
+      em.appendChild(document.createTextNode(primaryTerm));
+      if (isAlias) {
+        const aliasNote = document.createElement('span');
+        aliasNote.className = 'blg-banner-alias';
+        aliasNote.textContent = ` (matched as: ${matchedAs})`;
+        em.appendChild(aliasNote);
+      }
       if (entryList.length > 1) {
         const badge = document.createElement('sup');
         badge.className = 'blg-count-badge';
         badge.textContent = entryList.length;
         em.appendChild(badge);
       }
-      em.addEventListener('mouseenter', (e) => showTooltip(entryList, e.clientX, e.clientY));
+      em.addEventListener('mouseenter', (e) => showTooltip(entryList, matchedAs, e.clientX, e.clientY));
       em.addEventListener('mousemove', (e) => repositionTooltip(e.clientX, e.clientY));
       em.addEventListener('mouseleave', hideTooltip);
       termsEl.appendChild(em);
-      if (i < displayLists.length - 1) {
+      if (i < displayItems.length - 1) {
         termsEl.appendChild(document.createTextNode(', '));
       }
     });
@@ -326,14 +351,16 @@ function runBlacklistGuardian() {
     return tooltipEl;
   }
 
-  function showTooltip(entryList, x, y) {
+  function showTooltip(entryList, matchedAs, x, y) {
     clearTimeout(tooltipTimeout);
     const tip = ensureTooltip();
     tip.innerHTML = '';
 
     const termEl = document.createElement('div');
     termEl.id = 'blg-tooltip-term';
-    termEl.textContent = entryList[0].term;
+    const primaryTerm = entryList[0].term;
+    const isAlias = matchedAs.toLowerCase() !== primaryTerm.toLowerCase();
+    termEl.textContent = isAlias ? `${primaryTerm} (matched as: ${matchedAs})` : primaryTerm;
     tip.appendChild(termEl);
 
     entryList.forEach((entry, i) => {
@@ -416,6 +443,10 @@ function runBlacklistGuardian() {
         <textarea id="blg-reason" placeholder="e.g. Sold defective products and refused a refund in 2024"></textarea>
       </div>
       <div class="blg-field">
+        <label for="blg-aliases">Known aliases <span style="font-weight:400;text-transform:none;color:#a8a29e">(separate with ;)</span></label>
+        <input id="blg-aliases" type="text" placeholder="e.g. J. Smith; J.R. Smith; Smith, J." autocomplete="off">
+      </div>
+      <div class="blg-field">
         <label for="blg-category">Category (optional)</label>
         <select id="blg-category">
           <option value="other">Other / Unknown</option>
@@ -456,6 +487,7 @@ function runBlacklistGuardian() {
       const newEntry = {
         id: Date.now().toString(),
         term: termVal,
+        aliases: dialog.querySelector('#blg-aliases').value.trim(),
         reason: dialog.querySelector('#blg-reason').value.trim(),
         category: dialog.querySelector('#blg-category').value,
         sourceUrl: sourceUrl || window.location.href,

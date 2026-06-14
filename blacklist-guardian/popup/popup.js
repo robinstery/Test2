@@ -89,6 +89,7 @@ async function handleSave() {
   const newEntry = {
     id: Date.now().toString(),
     term,
+    aliases: document.getElementById('aliases').value.trim(),
     reason: reasonInput.value.trim(),
     category: categorySel.value,
     sourceUrl,
@@ -105,6 +106,7 @@ async function handleSave() {
 
   // Reset form
   termInput.value = '';
+  document.getElementById('aliases').value = '';
   reasonInput.value = '';
   categorySel.value = 'other';
   saveBtn.disabled = false;
