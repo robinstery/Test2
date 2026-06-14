@@ -97,6 +97,23 @@ mark.blg-highlight:hover {
   background: #fde047 !important;
 }
 
+/* Count badge — shown on highlights and banner terms when a term has multiple entries */
+.blg-count-badge {
+  font-size: 9px;
+  font-weight: 700;
+  vertical-align: super;
+  margin-left: 1px;
+  line-height: 0;
+}
+
+mark.blg-highlight .blg-count-badge {
+  color: #b91c1c;
+}
+
+#blg-banner-terms em .blg-count-badge {
+  color: rgba(255,255,255,0.95);
+}
+
 /* ── Tooltip ─────────────────────────────────────────────────────────────── */
 #blg-tooltip {
   position: fixed;
@@ -122,15 +139,27 @@ mark.blg-highlight:hover {
 #blg-tooltip-term {
   font-weight: 700;
   color: #fbbf24;
+  margin-bottom: 6px;
+}
+
+.blg-tooltip-divider {
+  font-size: 10px;
+  font-weight: 600;
+  color: #78716c;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-top: 1px solid #292524;
+  padding-top: 6px;
+  margin-top: 4px;
   margin-bottom: 4px;
 }
 
-#blg-tooltip-reason {
+.blg-tooltip-reason {
   color: #e7e5e4;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
-#blg-tooltip-source {
+.blg-tooltip-source {
   font-size: 11px;
   color: #a8a29e;
   overflow: hidden;
@@ -138,10 +167,11 @@ mark.blg-highlight:hover {
   white-space: nowrap;
 }
 
-#blg-tooltip-date {
+.blg-tooltip-date {
   font-size: 11px;
   color: #78716c;
-  margin-top: 4px;
+  margin-top: 2px;
+  margin-bottom: 2px;
 }
 
 /* ── Add / Edit Dialog ───────────────────────────────────────────────────── */

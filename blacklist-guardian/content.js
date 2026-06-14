@@ -52,11 +52,16 @@ function runBlacklistGuardian() {
       return;
     }
 
-    active.forEach(e => entryMap.set(e.term.toLowerCase(), e));
+    // Group by term — multiple reasons can share the same term
+    active.forEach(e => {
+      const key = e.term.toLowerCase();
+      if (!entryMap.has(key)) entryMap.set(key, []);
+      entryMap.get(key).push(e);
+    });
 
     // Sort longer terms first so "Acme Corporation" matches before "Acme"
-    const escaped = active
-      .map(e => e.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    const escaped = [...entryMap.keys()]
+      .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
       .sort((a, b) => b.length - a.length);
 
     termRegex = new RegExp(`(${escaped.join('|')})`, 'gi');
@@ -76,7 +81,7 @@ function runBlacklistGuardian() {
   function scanNode(root) {
     if (!termRegex || !root) return new Set();
 
-    const matched = new Set(); // entries found on this scan
+    const matched = new Map(); // lowercase term → entry[] found on this scan
 
     // TreeWalker visits every text node in the subtree efficiently
     const walker = document.createTreeWalker(
@@ -88,10 +93,9 @@ function runBlacklistGuardian() {
           if (!parent) return NodeFilter.FILTER_REJECT;
           // Skip nodes inside tags we don't want to touch
           if (SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
-          // Skip nodes already inside a highlight we injected
-          if (parent.classList && parent.classList.contains('blg-highlight')) return NodeFilter.FILTER_REJECT;
-          // Skip nodes inside our own banner / dialog
-          if (parent.closest && parent.closest('#blg-banner, #blg-overlay, #blg-tooltip')) {
+          // Skip nodes inside any of our own injected elements (the closest() check
+          // also handles text inside the <sup> badge nested inside a <mark>)
+          if (parent.closest && parent.closest('.blg-highlight, #blg-banner, #blg-overlay, #blg-tooltip')) {
             return NodeFilter.FILTER_REJECT;
           }
           if (node.textContent.trim() === '') return NodeFilter.FILTER_SKIP;
@@ -120,10 +124,11 @@ function runBlacklistGuardian() {
 
       while ((match = termRegex.exec(text)) !== null) {
         const matchedText = match[0];
-        const entry = entryMap.get(matchedText.toLowerCase());
-        if (!entry) continue;
+        const key = matchedText.toLowerCase();
+        const entryList = entryMap.get(key);
+        if (!entryList || entryList.length === 0) continue;
 
-        matched.add(entry);
+        if (!matched.has(key)) matched.set(key, entryList);
 
         // Text before the match
         if (match.index > lastIndex) {
@@ -133,9 +138,16 @@ function runBlacklistGuardian() {
         // The highlighted element
         const mark = document.createElement('mark');
         mark.className = 'blg-highlight';
-        mark.dataset.entryId = entry.id;
-        mark.textContent = matchedText;
-        mark.addEventListener('mouseenter', (e) => showTooltip(entry, e.clientX, e.clientY));
+        mark.dataset.term = key;
+        mark.appendChild(document.createTextNode(matchedText));
+        // Show entry count as a superscript badge when the term has multiple reasons
+        if (entryList.length > 1) {
+          const badge = document.createElement('sup');
+          badge.className = 'blg-count-badge';
+          badge.textContent = entryList.length;
+          mark.appendChild(badge);
+        }
+        mark.addEventListener('mouseenter', (e) => showTooltip(entryList, e.clientX, e.clientY));
         mark.addEventListener('mousemove', (e) => repositionTooltip(e.clientX, e.clientY));
         mark.addEventListener('mouseleave', hideTooltip);
         fragment.appendChild(mark);
@@ -170,7 +182,7 @@ function runBlacklistGuardian() {
     removeBanner();
 
     const matched = scanNode(document.body);
-    if (matched.size > 0) showBanner([...matched]);
+    if (matched.size > 0) showBanner([...matched.values()]);
 
     // Resume observing after our own changes settle
     if (mutationObserver) {
@@ -202,14 +214,16 @@ function runBlacklistGuardian() {
         });
 
         if (anyNew) {
-          // Re-collect all matched entries to update the banner
-          const allMatched = new Set();
+          // Re-collect all matched entry lists to update the banner
+          const allMatched = new Map();
           document.querySelectorAll('mark.blg-highlight').forEach(mark => {
-            const entry = entryMap.get(mark.textContent.toLowerCase());
-            if (entry) allMatched.add(entry);
+            const term = mark.dataset.term;
+            if (term && entryMap.has(term) && !allMatched.has(term)) {
+              allMatched.set(term, entryMap.get(term));
+            }
           });
           removeBanner();
-          if (allMatched.size > 0) showBanner([...allMatched]);
+          if (allMatched.size > 0) showBanner([...allMatched.values()]);
         }
 
         mutationObserver.observe(document.body, { childList: true, subtree: true });
@@ -221,7 +235,7 @@ function runBlacklistGuardian() {
 
   // ── Banner ─────────────────────────────────────────────────────────────────
 
-  function showBanner(matchedEntries) {
+  function showBanner(entryLists) {
     removeBanner();
 
     const banner = document.createElement('div');
@@ -237,21 +251,26 @@ function runBlacklistGuardian() {
     const termsEl = document.createElement('div');
     termsEl.id = 'blg-banner-terms';
 
-    // Show up to 3 entries; if more, add "and N more".
-    // Built with DOM nodes (not innerHTML) so tooltip listeners can be attached.
-    const displayEntries = matchedEntries.slice(0, 3);
-    const extra = matchedEntries.length - displayEntries.length;
+    // Show up to 3 terms; if more, add "and N more"
+    const displayLists = entryLists.slice(0, 3);
+    const extra = entryLists.length - displayLists.length;
 
     termsEl.appendChild(document.createTextNode('Blacklist Guardian: This page mentions '));
 
-    displayEntries.forEach((entry, i) => {
+    displayLists.forEach((entryList, i) => {
       const em = document.createElement('em');
-      em.textContent = entry.term;
-      em.addEventListener('mouseenter', (e) => showTooltip(entry, e.clientX, e.clientY));
+      em.appendChild(document.createTextNode(entryList[0].term));
+      if (entryList.length > 1) {
+        const badge = document.createElement('sup');
+        badge.className = 'blg-count-badge';
+        badge.textContent = entryList.length;
+        em.appendChild(badge);
+      }
+      em.addEventListener('mouseenter', (e) => showTooltip(entryList, e.clientX, e.clientY));
       em.addEventListener('mousemove', (e) => repositionTooltip(e.clientX, e.clientY));
       em.addEventListener('mouseleave', hideTooltip);
       termsEl.appendChild(em);
-      if (i < displayEntries.length - 1) {
+      if (i < displayLists.length - 1) {
         termsEl.appendChild(document.createTextNode(', '));
       }
     });
@@ -302,37 +321,48 @@ function runBlacklistGuardian() {
     if (!tooltipEl) {
       tooltipEl = document.createElement('div');
       tooltipEl.id = 'blg-tooltip';
-      tooltipEl.innerHTML = `
-        <div id="blg-tooltip-term"></div>
-        <div id="blg-tooltip-reason"></div>
-        <div id="blg-tooltip-source"></div>
-        <div id="blg-tooltip-date"></div>
-      `;
       document.body.appendChild(tooltipEl);
     }
     return tooltipEl;
   }
 
-  function showTooltip(entry, x, y) {
+  function showTooltip(entryList, x, y) {
     clearTimeout(tooltipTimeout);
     const tip = ensureTooltip();
+    tip.innerHTML = '';
 
-    tip.querySelector('#blg-tooltip-term').textContent = entry.term;
-    tip.querySelector('#blg-tooltip-reason').textContent = entry.reason || 'No reason recorded.';
+    const termEl = document.createElement('div');
+    termEl.id = 'blg-tooltip-term';
+    termEl.textContent = entryList[0].term;
+    tip.appendChild(termEl);
 
-    const sourceEl = tip.querySelector('#blg-tooltip-source');
-    if (entry.sourceTitle || entry.sourceUrl) {
-      sourceEl.textContent = 'Source: ' + (entry.sourceTitle || entry.sourceUrl);
-    } else {
-      sourceEl.textContent = 'Added manually';
-    }
+    entryList.forEach((entry, i) => {
+      if (entryList.length > 1) {
+        const divider = document.createElement('div');
+        divider.className = 'blg-tooltip-divider';
+        divider.textContent = `Reason ${i + 1}`;
+        tip.appendChild(divider);
+      }
 
-    const dateEl = tip.querySelector('#blg-tooltip-date');
-    if (entry.dateAdded) {
-      dateEl.textContent = 'Added: ' + new Date(entry.dateAdded).toLocaleDateString();
-    } else {
-      dateEl.textContent = '';
-    }
+      const reasonEl = document.createElement('div');
+      reasonEl.className = 'blg-tooltip-reason';
+      reasonEl.textContent = entry.reason || 'No reason recorded.';
+      tip.appendChild(reasonEl);
+
+      const sourceEl = document.createElement('div');
+      sourceEl.className = 'blg-tooltip-source';
+      sourceEl.textContent = (entry.sourceTitle || entry.sourceUrl)
+        ? 'Source: ' + (entry.sourceTitle || entry.sourceUrl)
+        : 'Added manually';
+      tip.appendChild(sourceEl);
+
+      if (entry.dateAdded) {
+        const dateEl = document.createElement('div');
+        dateEl.className = 'blg-tooltip-date';
+        dateEl.textContent = 'Added: ' + new Date(entry.dateAdded).toLocaleDateString();
+        tip.appendChild(dateEl);
+      }
+    });
 
     repositionTooltip(x, y);
     tip.classList.add('blg-visible');
