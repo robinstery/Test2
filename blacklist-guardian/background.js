@@ -5,7 +5,7 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'blg-add',
-    title: 'Add "%s" to Blacklist Guardian',
+    title: 'Add "%s" to Blacklist Memo',
     contexts: ['selection']
   });
 });

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Blacklist Guardian",
+  "name": "Blacklist Memo",
   "version": "1.0.0",
   "description": "Highlights and flags content from people, companies, or products you have had negative experiences with.",
   "permissions": [
@@ -25,7 +25,7 @@
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Blacklist Guardian",
+    "default_title": "Blacklist Memo",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
