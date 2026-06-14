@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blacklist Guardian — My List</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="header-title">
+        <span class="header-icon">🛡️</span>
+        <h1>Blacklist Guardian</h1>
+        <span id="entry-count" class="entry-count"></span>
+      </div>
+      <div class="header-actions">
+        <button id="export-btn" class="btn-secondary">Export list</button>
+        <label class="btn-secondary import-label">
+          Import list
+          <input type="file" id="import-file" accept=".json" hidden>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Search and filter bar -->
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search by term, reason, or category…" autocomplete="off">
+      <select id="filter-category">
+        <option value="">All categories</option>
+        <option value="person">Person</option>
+        <option value="company">Company / Organisation</option>
+        <option value="product">Product / Brand</option>
+        <option value="author">Author / Journalist</option>
+        <option value="website">Website / Publisher</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <!-- Import notice -->
+    <div id="import-notice" class="notice" hidden></div>
+
+    <!-- Entry table -->
+    <div class="table-wrap">
+      <table id="entries-table">
+        <thead>
+          <tr>
+            <th class="col-term" data-sort="term">Term <span class="sort-icon">↕</span></th>
+            <th class="col-cat">Category</th>
+            <th class="col-reason">Reason</th>
+            <th class="col-source">Source page</th>
+            <th class="col-date" data-sort="dateAdded">Date <span class="sort-icon">↕</span></th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="entries-tbody">
+          <tr id="empty-row">
+            <td colspan="6" class="empty-cell">
+              Your blacklist is empty. Add entries using the right-click menu on any webpage,
+              or via the extension popup.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Edit modal -->
+  <div id="edit-overlay" class="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-labelledby="edit-title" aria-modal="true">
+      <h2 id="edit-title">Edit entry</h2>
+
+      <div class="modal-field">
+        <label for="edit-term">Term / Name</label>
+        <input id="edit-term" type="text">
+      </div>
+      <div class="modal-field">
+        <label for="edit-reason">Reason</label>
+        <textarea id="edit-reason"></textarea>
+      </div>
+      <div class="modal-field">
+        <label for="edit-category">Category</label>
+        <select id="edit-category">
+          <option value="other">Other / Unknown</option>
+          <option value="person">Person</option>
+          <option value="company">Company / Organisation</option>
+          <option value="product">Product / Brand</option>
+          <option value="author">Author / Journalist</option>
+          <option value="website">Website / Publisher</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label for="edit-source-title">Source page title (optional)</label>
+        <input id="edit-source-title" type="text">
+      </div>
+      <div class="modal-field">
+        <label for="edit-source-url">Source page URL (optional)</label>
+        <input id="edit-source-url" type="url" placeholder="https://…">
+      </div>
+
+      <div class="modal-footer">
+        <button id="edit-cancel" class="btn-secondary">Cancel</button>
+        <button id="edit-save" class="btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirmation modal -->
+  <div id="delete-overlay" class="modal-overlay" hidden>
+    <div class="modal modal-sm" role="dialog" aria-modal="true">
+      <h2>Delete entry?</h2>
+      <p id="delete-confirm-text"></p>
+      <div class="modal-footer">
+        <button id="delete-cancel" class="btn-secondary">Cancel</button>
+        <button id="delete-confirm" class="btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

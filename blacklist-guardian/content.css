@@ -1,0 +1,265 @@
+/* All class names are prefixed with blg- to avoid clashing with any page's own styles */
+
+/* ── Banner ─────────────────────────────────────────────────────────────── */
+#blg-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483647; /* maximum possible z-index */
+  background: #7f1d1d;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-sizing: border-box;
+}
+
+#blg-banner-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+#blg-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+#blg-banner-terms {
+  font-weight: 600;
+}
+
+#blg-banner-terms em {
+  font-style: normal;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin: 0 2px;
+}
+
+#blg-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#blg-banner-list-btn {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+#blg-banner-list-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+#blg-banner-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+#blg-banner-close:hover {
+  color: #fff;
+}
+
+/* ── Highlights ─────────────────────────────────────────────────────────── */
+mark.blg-highlight {
+  background: #fef08a !important;
+  color: #1c1917 !important;
+  border-bottom: 2px solid #ef4444 !important;
+  border-radius: 2px !important;
+  padding: 1px 0 !important;
+  cursor: help !important;
+  text-decoration: none !important;
+}
+
+mark.blg-highlight:hover {
+  background: #fde047 !important;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────────── */
+#blg-tooltip {
+  position: fixed;
+  z-index: 2147483646;
+  background: #1c1917;
+  color: #f5f5f4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  border-radius: 6px;
+  max-width: 320px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+#blg-tooltip.blg-visible {
+  opacity: 1;
+}
+
+#blg-tooltip-term {
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 4px;
+}
+
+#blg-tooltip-reason {
+  color: #e7e5e4;
+  margin-bottom: 4px;
+}
+
+#blg-tooltip-source {
+  font-size: 11px;
+  color: #a8a29e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#blg-tooltip-date {
+  font-size: 11px;
+  color: #78716c;
+  margin-top: 4px;
+}
+
+/* ── Add / Edit Dialog ───────────────────────────────────────────────────── */
+#blg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#blg-dialog {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1c1917;
+  box-sizing: border-box;
+}
+
+#blg-dialog h2 {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1c1917;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blg-field {
+  margin-bottom: 14px;
+}
+
+.blg-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #57534e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+}
+
+.blg-field input,
+.blg-field textarea,
+.blg-field select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1c1917;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.blg-field input:focus,
+.blg-field textarea:focus,
+.blg-field select:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+}
+
+.blg-field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.blg-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.blg-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.blg-btn-primary {
+  background: #dc2626;
+  color: #fff;
+}
+
+.blg-btn-primary:hover {
+  background: #b91c1c;
+}
+
+.blg-btn-secondary {
+  background: #f5f5f4;
+  color: #44403c;
+  border: 1px solid #d6d3d1;
+}
+
+.blg-btn-secondary:hover {
+  background: #e7e5e4;
+}
+
+#blg-dialog-success {
+  text-align: center;
+  padding: 16px 0 4px;
+  color: #15803d;
+  font-weight: 600;
+  font-size: 15px;
+  display: none;
+}

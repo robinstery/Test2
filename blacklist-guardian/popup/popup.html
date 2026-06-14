@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blacklist Guardian</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <span class="header-icon">🛡️</span>
+    <h1>Blacklist Guardian</h1>
+  </header>
+
+  <!-- Add new entry form -->
+  <section class="add-section">
+    <h2>Add to Blacklist</h2>
+
+    <div class="field">
+      <label for="term">Term / Name</label>
+      <input id="term" type="text" placeholder="e.g. Acme Corporation" autocomplete="off" autofocus>
+    </div>
+
+    <div class="field">
+      <label for="reason">Reason</label>
+      <textarea id="reason" placeholder="Why are you blacklisting this? (optional but recommended)"></textarea>
+    </div>
+
+    <div class="field field-row">
+      <div class="field-grow">
+        <label for="category">Category</label>
+        <select id="category">
+          <option value="other">Other / Unknown</option>
+          <option value="person">Person</option>
+          <option value="company">Company / Organisation</option>
+          <option value="product">Product / Brand</option>
+          <option value="author">Author / Journalist</option>
+          <option value="website">Website / Publisher</option>
+        </select>
+      </div>
+      <button id="save-btn" class="btn-primary">Add</button>
+    </div>
+
+    <div id="save-success" class="success-msg" hidden>✓ Added to your blacklist</div>
+    <div id="save-error" class="error-msg" hidden>Please enter a term first.</div>
+  </section>
+
+  <!-- Recent entries -->
+  <section class="recent-section">
+    <h2>Recent entries <span id="total-count"></span></h2>
+    <ul id="recent-list">
+      <li class="empty-msg">Your blacklist is empty.<br>Add your first entry above.</li>
+    </ul>
+  </section>
+
+  <!-- Footer link to options page -->
+  <footer>
+    <button id="open-options" class="btn-link">Open full list &amp; settings →</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
